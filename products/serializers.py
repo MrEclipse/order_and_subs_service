@@ -3,9 +3,12 @@ from products.models import Order
 from decimal import Decimal
 
 from subscriptions.models import UserSubscription
+from subscriptions.serializers import UserSubscriptionSerializer
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    subscription = UserSubscriptionSerializer()
+
     class Meta:
         model = Order
         fields = '__all__'
@@ -28,14 +31,15 @@ class OrderSerializer(serializers.ModelSerializer):
         return (product.base_price or Decimal('0')) * (subscription.tariff.rate or Decimal('0')) * count
 
     def create(self, validated_data):
-        total_price = self._calc_total_price(validated_data['product'], validated_data['count'], validated_data['subscription'])
+        total_price = self._calc_total_price(validated_data['product'], validated_data['count'],
+                                             validated_data['subscription'])
         validated_data['total_price'] = total_price
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         # Если через updated_fields делать и сохранять два раза, то
         # получается два sql запроса. а вот так работает через один
-        total_price = self._calc_total_price(validated_data['product'], validated_data['count'], validated_data['subscription'])
+        total_price = self._calc_total_price(validated_data['product'], validated_data['count'],
+                                             validated_data['subscription'])
         validated_data['total_price'] = total_price
         return super().update(instance, validated_data)
-

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from subscriptions.models import Tariff, UserSubscription
+from users.serializers import UserSerializer
 
 
 class TariffSerializer(serializers.ModelSerializer):
@@ -9,6 +10,8 @@ class TariffSerializer(serializers.ModelSerializer):
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
     class Meta:
         model = UserSubscription
         fields = '__all__'

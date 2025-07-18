@@ -37,6 +37,39 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  bot:
+    build:
+      context: .
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - database
+      - rabbit
+    volumes:
+      - ./:/app
+    command: >
+      sh -c "\
+        echo \"Waiting for RabbitMQ...\"; \
+        while ! nc -z rabbit 5672; do \
+          echo \"RabbitMQ is unavailable - sleeping\"; \
+          sleep 2; \
+        done; \
+        echo \"RabbitMQ is up - starting bot\"; \
+        python bot.py\
+      "
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - .env
+    environment:
+
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
 
 volumes:
   postgres_data:
